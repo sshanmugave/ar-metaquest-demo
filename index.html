@@ -1,107 +1,455 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>WebXR 3D Models - Meta Quest 3 & Android</title>
-  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-  <style>
-    body {
-      margin: 0;
-      font-family: sans-serif;
-      background: #ffffff;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Audio Interaction - Meta Quest Demo</title>
+    
+    <!-- model-viewer library -->
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+        }
 
-    .container {
-      width: 90%;
-      max-width: 800px;
-      margin: 20px auto;
-      background: #ffffff;
-      border-radius: 16px;
-      overflow: hidden;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
-    }
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
 
-    model-viewer {
-      width: 100%;
-      height: 500px;
-      background: #ffffff;
-    }
+        h1 {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
 
-    .controls {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 20px;
-      background: #ffffff;
-    }
+        .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
 
-    .controls button {
-      background-color: #000000;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      font-size: 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: 0.3s ease;
-    }
+        model-viewer {
+            width: 100%;
+            height: 500px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #f0f0f0, #e0e0e0);
+        }
 
-    .controls button:hover {
-      background-color: #444;
-    }
-  </style>
+        /* Hotspot styling for AR mode */
+        .hotspot {
+            background: rgba(255, 255, 255, 0.9);
+            border: 3px solid #667eea;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .hotspot:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .hotspot.playing {
+            background: rgba(102, 126, 234, 0.9);
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 16px;
+            backdrop-filter: blur(5px);
+        }
+
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status {
+            text-align: center;
+            margin-top: 15px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .instructions {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            line-height: 1.6;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            color: #FFD700;
+        }
+
+        .instructions ul {
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 8px;
+        }
+
+        .github-link {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .github-link:hover {
+            background: rgba(0, 0, 0, 0.9);
+            transform: scale(1.05);
+        }
+
+        /* Responsive design */
+        @media (max-width: 600px) {
+            body {
+                padding: 10px;
+            }
+            
+            model-viewer {
+                height: 400px;
+            }
+            
+            h1 {
+                font-size: 1.5em;
+            }
+            
+            .hotspot {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+
+            .github-link {
+                top: 10px;
+                right: 10px;
+                padding: 8px 12px;
+                font-size: 12px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <a href="https://github.com/sshanmugave/ar-metaquest-demo" class="github-link" target="_blank">
+        📁 View on GitHub
+    </a>
 
-  <!-- Audio file -->
-  <audio id="arAudio" src="distance.mp3"></audio>
-
-  <!-- Container with AR-enabled model -->
-  <div class="container">
-    <model-viewer 
-      id="model1"
-      src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
-      ar
-      ar-modes="webxr scene-viewer quick-look"
-      camera-controls 
-      auto-rotate 
-      shadow-intensity="1"
-      alt="A 3D astronaut model"
-      interaction-prompt="auto"
-      exposure="1">
-    </model-viewer>
-    <div class="controls">
-      <button onclick="document.getElementById('model1').activateAR()">View in AR</button>
-      <button onclick="document.getElementById('model1').requestFullscreen()">Fullscreen</button>
+    <div class="container">
+        <h1>🎵 AR Audio Experience</h1>
+        <p class="subtitle">Meta Quest 3 & Android AR Compatible Audio Demo</p>
+        
+        <model-viewer
+            id="model"
+            src="https://modelviewer.dev/shared-assets/models/Astronaut.glb"
+            alt="3D Model with Audio Interaction"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+            camera-controls
+            touch-action="pan-y"
+            shadow-intensity="1"
+            shadow-softness="0.5"
+            exposure="0.8"
+            environment-image="neutral">
+            
+            <!-- Hotspot for AR interaction -->
+            <button 
+                class="hotspot" 
+                slot="hotspot-1" 
+                data-position="0 1.5 0" 
+                data-normal="0 1 0"
+                id="audioHotspot"
+                title="Tap to play/pause audio">
+                🔊
+            </button>
+            
+            <!-- Loading indicator -->
+            <div slot="progress-bar" style="display: none;"></div>
+        </model-viewer>
+        
+        <div class="controls">
+            <button class="control-btn" id="toggleAudio">🎵 Toggle Audio</button>
+            <button class="control-btn" id="enterAR">🥽 Enter AR</button>
+            <button class="control-btn" id="resetView">🔄 Reset View</button>
+        </div>
+        
+        <div class="status" id="status">
+            Ready - Tap the model or hotspot to start audio
+        </div>
+        
+        <div class="instructions">
+            <h3>📱 How to Use:</h3>
+            <ul>
+                <li><strong>Desktop/Mobile:</strong> Click anywhere on the 3D model to play/pause audio</li>
+                <li><strong>AR Mode (Meta Quest):</strong> Use hand tracking or controller to tap the floating hotspot (🔊)</li>
+                <li><strong>AR Mode (Android):</strong> Tap the hotspot or model surface in AR view</li>
+                <li><strong>Audio File:</strong> Uses "distance.mp3" from this repository</li>
+                <li><strong>Tested Platforms:</strong> Meta Quest 2/3, Android ARCore, iOS Quick Look</li>
+            </ul>
+            
+            <h3>🔧 Repository Structure:</h3>
+            <ul>
+                <li><code>index.html</code> - Main AR webpage</li>
+                <li><code>distance.mp3</code> - Audio file that plays on interaction</li>
+                <li><code>README.md</code> - Documentation and setup instructions</li>
+            </ul>
+        </div>
     </div>
-  </div>
 
-  <script>
-    const modelViewer = document.getElementById('model1');
-    const arAudio = document.getElementById('arAudio');
-    let isPlaying = false;
+    <script>
+        class ARVideoAudioController {
+            constructor() {
+                this.modelViewer = document.getElementById('model');
+                this.audioHotspot = document.getElementById('audioHotspot');
+                this.status = document.getElementById('status');
+                this.audio = null;
+                this.isPlaying = false;
+                this.isAR = false;
+                this.audioUrl = './distance.mp3'; // GitHub Pages relative path
+                
+                this.init();
+            }
+            
+            init() {
+                this.setupAudio();
+                this.setupEventListeners();
+                this.updateStatus('Initializing...');
+            }
+            
+            setupAudio() {
+                // Create audio element
+                this.audio = new Audio();
+                this.audio.preload = 'auto';
+                this.audio.loop = false;
+                this.audio.crossOrigin = 'anonymous'; // For GitHub Pages
+                
+                // Set audio source
+                this.audio.src = this.audioUrl;
+                
+                // Audio event listeners
+                this.audio.addEventListener('loadeddata', () => {
+                    this.updateStatus('Ready - distance.mp3 loaded successfully');
+                });
+                
+                this.audio.addEventListener('error', (e) => {
+                    console.warn('distance.mp3 failed to load:', e);
+                    this.updateStatus('Warning: distance.mp3 not found - please upload the audio file to the repository');
+                });
+                
+                this.audio.addEventListener('ended', () => {
+                    this.isPlaying = false;
+                    this.updateHotspotAppearance();
+                    this.updateStatus('Audio finished playing');
+                });
 
-    // Toggle audio on model click
-    modelViewer.addEventListener('click', () => {
-      if (isPlaying) {
-        arAudio.pause();
-        arAudio.currentTime = 0;
-      } else {
-        arAudio.play();
-      }
-      isPlaying = !isPlaying;
-    });
+                this.audio.addEventListener('canplaythrough', () => {
+                    this.updateStatus('Audio ready to play');
+                });
+            }
+            
+            setupEventListeners() {
+                // Model click for non-AR mode
+                this.modelViewer.addEventListener('click', (event) => {
+                    if (!this.isAR) {
+                        this.toggleAudio();
+                    }
+                });
+                
+                // Hotspot click for AR mode (works in both AR and 3D)
+                this.audioHotspot.addEventListener('click', (event) => {
+                    event.stopPropagation();
+                    this.toggleAudio();
+                });
+                
+                // AR status tracking
+                this.modelViewer.addEventListener('ar-status', (event) => {
+                    this.isAR = event.detail.status === 'session-started';
+                    if (this.isAR) {
+                        this.updateStatus('🥽 AR Mode Active - Tap the floating hotspot (🔊) to control audio');
+                    } else if (event.detail.status === 'not-presenting') {
+                        this.updateStatus('3D Mode Active - Click the model or hotspot to control audio');
+                    }
+                });
+                
+                // Control buttons
+                document.getElementById('toggleAudio').addEventListener('click', () => {
+                    this.toggleAudio();
+                });
+                
+                document.getElementById('enterAR').addEventListener('click', () => {
+                    if (this.modelViewer.canActivateAR) {
+                        this.modelViewer.activateAR();
+                    } else {
+                        this.updateStatus('❌ AR not supported on this device/browser');
+                    }
+                });
+                
+                document.getElementById('resetView').addEventListener('click', () => {
+                    this.modelViewer.resetTurntableRotation();
+                    this.modelViewer.jumpCameraToGoal();
+                    this.updateStatus('View reset to default position');
+                });
+                
+                // Model loading events
+                this.modelViewer.addEventListener('load', () => {
+                    this.updateStatus('✅ 3D Model loaded successfully');
+                });
+                
+                this.modelViewer.addEventListener('error', (event) => {
+                    this.updateStatus('❌ Error loading 3D model');
+                    console.error('Model loading error:', event);
+                });
 
-    // Preload audio once AR session starts (needed for Meta Quest)
-    modelViewer.addEventListener('ar-status', (event) => {
-      if (event.detail.status === 'session-started') {
-        arAudio.load();
-      }
-    });
-  </script>
+                // Check AR availability
+                this.modelViewer.addEventListener('ar-status', (event) => {
+                    if (event.detail.status === 'failed') {
+                        this.updateStatus('AR failed to start - check device compatibility');
+                    }
+                });
+            }
+            
+            async toggleAudio() {
+                if (!this.audio) {
+                    this.updateStatus('Audio not initialized');
+                    return;
+                }
+                
+                try {
+                    if (this.isPlaying) {
+                        this.audio.pause();
+                        this.audio.currentTime = 0;
+                        this.isPlaying = false;
+                        this.updateStatus('🔇 Audio stopped');
+                    } else {
+                        // Check if audio can play
+                        if (this.audio.readyState >= 2) { // HAVE_CURRENT_DATA
+                            await this.audio.play();
+                            this.isPlaying = true;
+                            this.updateStatus('🔊 Audio playing: distance.mp3');
+                        } else {
+                            this.updateStatus('⏳ Loading audio file...');
+                            await new Promise(resolve => {
+                                this.audio.addEventListener('canplay', resolve, { once: true });
+                            });
+                            await this.audio.play();
+                            this.isPlaying = true;
+                            this.updateStatus('🔊 Audio playing: distance.mp3');
+                        }
+                    }
+                    
+                    this.updateHotspotAppearance();
+                } catch (error) {
+                    console.error('Audio playback error:', error);
+                    if (error.name === 'NotAllowedError') {
+                        this.updateStatus('❌ Audio blocked - user interaction required. Try clicking again.');
+                    } else {
+                        this.updateStatus('❌ Audio playback failed - check if distance.mp3 exists');
+                    }
+                }
+            }
+            
+            updateHotspotAppearance() {
+                if (this.isPlaying) {
+                    this.audioHotspot.classList.add('playing');
+                    this.audioHotspot.innerHTML = '🔇';
+                    this.audioHotspot.title = 'Tap to stop audio';
+                } else {
+                    this.audioHotspot.classList.remove('playing');
+                    this.audioHotspot.innerHTML = '🔊';
+                    this.audioHotspot.title = 'Tap to play audio';
+                }
+            }
+            
+            updateStatus(message) {
+                this.status.textContent = message;
+                console.log('AR Audio Controller:', message);
+            }
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new ARVideoAudioController();
+        });
+        
+        // Handle page visibility changes (pause audio when tab hidden)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden && window.arController && window.arController.audio && window.arController.isPlaying) {
+                window.arController.audio.pause();
+                window.arController.isPlaying = false;
+                window.arController.updateHotspotAppearance();
+                window.arController.updateStatus('Audio paused (tab hidden)');
+            }
+        });
 
+        // Handle errors gracefully
+        window.addEventListener('error', (event) => {
+            console.error('Global error:', event.error);
+        });
+
+        window.addEventListener('unhandledrejection', (event) => {
+            console.error('Unhandled promise rejection:', event.reason);
+        });
+    </script>
 </body>
 </html>
