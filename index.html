@@ -56,6 +56,9 @@
 </head>
 <body>
 
+  <!-- Audio element -->
+  <audio id="arAudio" src="distance.mp3"></audio>
+
   <!-- Container with WebXR-only AR enabled -->
   <div class="container">
     <model-viewer 
@@ -75,5 +78,20 @@
     </div>
   </div>
 
+  <script>
+    const modelViewer = document.getElementById('model1');
+    const arAudio = document.getElementById('arAudio');
+    let isPlaying = false;
+
+    modelViewer.addEventListener('click', () => {
+      if (isPlaying) {
+        arAudio.pause();
+        arAudio.currentTime = 0;
+      } else {
+        arAudio.play();
+      }
+      isPlaying = !isPlaying;
+    });
+  </script>
 </body>
 </html>
