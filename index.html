@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Interactive AR Model with Voice & Labels</title>
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: sans-serif;
+      background: #111;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 800px;
+      background: #222;
+      padding: 20px;
+      border-radius: 12px;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 500px;
+      background: #333;
+      border-radius: 8px;
+    }
+
+    .controls {
+      margin: 15px;
+      text-align: center;
+    }
+
+    button {
+      margin: 5px;
+      padding: 10px 16px;
+      background: #444;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #fullscreenBtn {
+      position: absolute;
+      bottom: 25px;
+      right: 25px;
+      background: #007bff;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #fullscreenBtn:hover {
+      background: #0056b3;
+    }
+
+    .status {
+      margin-top: 8px;
+      padding: 8px;
+      background: #333;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+
+    .label {
+      background: rgba(0, 123, 255, 0.9);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      max-width: 150px;
+      text-align: center;
+      pointer-events: none;
+      margin-top: 6px;
+    }
+
+    .hotspot-btn {
+      background: #fff;
+      border: 2px solid #007bff;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-direction: column;
+    }
+
+    .hotspot-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .label[hidden] {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>AR Voice-Enabled Labels – Neil Armstrong Model</h2>
+
+    <model-viewer
+      id="viewer"
+      src="https://modelviewer.dev/shared-assets/models/NeilArmstrong.glb"
+      ar
+      ar-modes="webxr"
+      camera-controls
+      auto-rotate
+      exposure="1"
+      shadow-intensity="1">
+
+      <!-- Helmet Button & Label -->
+      <div slot="hotspot-1" data-position="0 1.5 0.2" data-normal="0 0 1" class="hotspot-wrapper">
+        <div class="hotspot-btn" onclick="showInfo('helmet')">🪖</div>
+        <div id="label-helmet" class="label" hidden>
+          Helmet protects the astronaut's head.
+        </div>
+      </div>
+
+      <!-- Boots Button & Label -->
+      <div slot="hotspot-2" data-position="0 -0.2 0.3" data-normal="0 1 0" class="hotspot-wrapper">
+        <div class="hotspot-btn" onclick="showInfo('boots')">🥾</div>
+        <div id="label-boots" class="label" hidden>
+          Boots are engineered for the moon surface.
+        </div>
+      </div>
+    </model-viewer>
+
+    <button id="fullscreenBtn" title="Fullscreen">⛶</button>
+
+    <div class="controls">
+      <button id="enterAR">Enter AR</button>
+    </div>
+
+    <div class="status" id="status">Status: Ready</div>
+  </div>
+
+  <script>
+    const status = document.getElementById('status');
+
+    const descriptions = {
+      helmet: "Helmet protects the astronaut's head.",
+      boots: "Boots are engineered for the moon surface."
+    };
+
+    function showInfo(part) {
+      // Hide all labels
+      document.querySelectorAll('.label').forEach(label => label.hidden = true);
+
+      // Show the selected label
+      const label = document.getElementById('label-' + part);
+      if (label) {
+        label.hidden = false;
+        setTimeout(() => label.hidden = true, 5000);
+      }
+
+      // Speak text
+      const utterance = new SpeechSynthesisUtterance(descriptions[part]);
+      speechSynthesis.cancel(); // Stop any existing speech
+      speechSynthesis.speak(utterance);
+
+      status.textContent = 'Status: Speaking ' + part;
+    }
+
+    document.getElementById('fullscreenBtn').onclick = () => {
+      const viewer = document.getElementById('viewer');
+      if (!document.fullscreenElement) {
+        viewer.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    };
+
+    document.getElementById('enterAR').onclick = () => {
+      const viewer = document.getElementById('viewer');
+      viewer.activateAR().catch(() => {
+        status.textContent = 'Status: AR not supported';
+      });
+    };
+
+    document.getElementById('viewer').addEventListener('load', () => {
+      status.textContent = 'Status: Model loaded';
+    });
+
+    // Trigger speech with controller in AR
+    document.getElementById('viewer').addEventListener('xr-session-started', e => {
+      status.textContent = 'Status: In AR – press trigger for helmet';
+      e.detail.session.addEventListener('select', () => showInfo('helmet'));
+    });
+  </script>
+</body>
+</html>
